@@ -1,0 +1,3 @@
+# www.lightofnow.com.br -> lightofnow.com.br (um endereço só)
+https://www.lightofnow.com.br/*  https://lightofnow.com.br/:splat  301!
+http://www.lightofnow.com.br/*   https://lightofnow.com.br/:splat  301!

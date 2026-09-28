@@ -1,0 +1,5 @@
+# Configuração da Netlify.
+# A pasta publicada é "site". Cache e segurança ficam em site/_headers,
+# e o redirecionamento do www fica em site/_redirects.
+[build]
+  publish = "site"

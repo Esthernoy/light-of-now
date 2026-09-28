@@ -1,0 +1,21 @@
+# Segurança, para todas as páginas
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# As imagens têm um código no nome (ex.: ocean-breeze.a0f269e9.webp).
+# Se a foto mudar, o nome muda. Por isso podem ficar guardadas por 1 ano.
+/img/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Página, estilo e código: o navegador sempre confere se há versão nova.
+/*.css
+  Cache-Control: public, max-age=0, must-revalidate
+/*.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/compartilhar.jpg
+  Cache-Control: public, max-age=86400

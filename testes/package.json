@@ -1,0 +1,18 @@
+{
+  "name": "light-of-now-testes",
+  "version": "1.0.0",
+  "description": "Testes automáticos do site (visual, compra, Pix)",
+  "scripts": {
+    "visual": "node visual.js",
+    "fluxo": "node fluxo.js"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "jsqr": "^1.4.0",
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^7.0.0",
+    "puppeteer-core": "^24.43.1"
+  },
+  "private": true
+}
