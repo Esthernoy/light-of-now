@@ -1,3 +1,6 @@
 # www.lightofnow.com.br -> lightofnow.com.br (um endereço só)
 https://www.lightofnow.com.br/*  https://lightofnow.com.br/:splat  301!
 http://www.lightofnow.com.br/*   https://lightofnow.com.br/:splat  301!
+
+# endereço provisório da Netlify -> domínio oficial
+https://light-of-now.netlify.app/*  https://lightofnow.com.br/:splat  301!

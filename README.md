@@ -57,7 +57,9 @@ sozinho, e ela também guarda o estoque e os pedidos.
 
 Daí em diante, toda mudança enviada ao GitHub é publicada sozinha.
 
-> **Como está hoje (28/09/2026):** o projeto já existe na Netlify como
+> **Como está hoje (28/09/2026):** a loja está no ar em **https://lightofnow.com.br**
+> (DNS da Netlify, servidores `dns1` a `dns4.p04.nsone.net` no Registro.br; cadeado
+> Let's Encrypt renovado sozinho). O projeto na Netlify se chama
 > **light-of-now** (https://light-of-now.netlify.app), mas foi publicado direto do
 > computador (`netlify deploy --prod --no-build --dir site --functions netlify/functions`),
 > porque a janela de login do GitHub não abria no navegador do app. Por isso, **uma
