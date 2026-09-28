@@ -57,6 +57,18 @@ sozinho, e ela também guarda o estoque e os pedidos.
 
 Daí em diante, toda mudança enviada ao GitHub é publicada sozinha.
 
+> **Como está hoje (28/09/2026):** o projeto já existe na Netlify como
+> **light-of-now** (https://light-of-now.netlify.app), mas foi publicado direto do
+> computador (`netlify deploy --prod --no-build --dir site --functions netlify/functions`),
+> porque a janela de login do GitHub não abria no navegador do app. Por isso, **uma
+> mudança enviada ao GitHub ainda não publica sozinha**. Para ligar: Netlify →
+> light-of-now → **Project configuration → Build & deploy → Link repository** →
+> GitHub → `light-of-now`. Faça isso num navegador comum (Chrome ou Brave).
+>
+> Na configuração do projeto também ficou: **Visitor access** = loja pública e
+> versões de teste privadas; **Powered by Netlify badge** = desligado (o selo mudaria
+> o visual da loja).
+
 > **Arrastar a pasta não serve mais.** Na Etapa 1 dava para publicar arrastando a
 > pasta `site` em app.netlify.com/drop. Agora o site tem uma parte que roda no
 > servidor (estoque e pedidos), e ela só é publicada pelo GitHub.

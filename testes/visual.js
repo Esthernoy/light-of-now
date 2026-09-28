@@ -7,7 +7,7 @@ const fs = require('fs');
 
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const BASE = 'http://localhost:8765';
-const PAGINAS = { original: '/ferramentas/original.html', novo: '/site/index.html' };
+const PAGINAS = { original: '/ferramentas/original.html', novo: process.env.NOVO || '/site/index.html' };   // NOVO=https://... compara com o site publicado
 const TELAS = {
   pc: { width: 1440, height: 900, deviceScaleFactor: 1 },
   cel: { width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
@@ -18,7 +18,7 @@ async function fotos(browser, url, tela) {
   const p = await browser.newPage();
   await p.setViewport(tela);
   await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
-  await p.goto(BASE + url, { waitUntil: 'networkidle0' });
+  await p.goto(url.startsWith('http') ? url : BASE + url, { waitUntil: 'networkidle0' });
   await p.evaluate(() => document.fonts.ready);
   await espera(3500);                               // .tudo-visivel entra aos 2,5 s
   // congela o que se mexe: anéis girando, o olho animado (AVIF) e transições
