@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1b3757">
+<title>Painel · Light of Now</title>
+<link rel="icon" type="image/png" href="../img/favicon.b4e4d637.png">
+<style>
+:root{--navy:#1b3757;--azul:#4a79aa;--gold:#c9a96e;--cream:#faf9f7;--linha:#dfe6ee;--txt:#2c3e50;--muted:#5d6f82;
+  --verde:#3f7a50;--verm:#b05555;--amarelo:#a8844a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--cream);color:var(--txt);font-size:16px;
+  -webkit-tap-highlight-color:transparent;}
+button{font:inherit;cursor:pointer;}
+[hidden]{display:none!important;}
+.topo{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;}
+.topo h1{font-size:1.05rem;font-weight:600;letter-spacing:.04em;flex:1;}
+.topo h1 small{display:block;font-weight:400;font-size:.78rem;opacity:.75;letter-spacing:0;}
+.topo button{background:none;border:1px solid rgba(255,255,255,.45);color:#fff;border-radius:8px;padding:7px 12px;font-size:.85rem;}
+.abas{position:sticky;top:56px;z-index:4;display:grid;grid-template-columns:1fr 1fr;background:#fff;border-bottom:1px solid var(--linha);}
+.abas button{background:none;border:none;padding:14px 8px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;}
+.abas button.on{color:var(--navy);border-bottom-color:var(--gold);}
+.abas .bolinha{display:inline-block;min-width:22px;padding:1px 7px;margin-left:6px;border-radius:11px;background:var(--gold);color:#fff;font-size:.8rem;}
+main{max-width:720px;margin:0 auto;padding:16px 14px 80px;}
+.caixa{background:#fff;border:1px solid var(--linha);border-radius:12px;padding:16px;margin-bottom:14px;}
+.login{max-width:380px;margin:12vh auto 0;text-align:center;}
+.login h2{font-weight:500;color:var(--navy);margin-bottom:18px;}
+input[type=password]{width:100%;padding:14px;border:1px solid #c9d8e8;border-radius:10px;font-size:1.05rem;margin-bottom:12px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:10px;padding:13px 16px;font-weight:600;
+  background:var(--navy);color:#fff;min-height:48px;}
+.btn.largo{width:100%;}
+.erro{color:var(--verm);min-height:1.3em;margin-top:10px;font-size:.95rem;}
+.filtros{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.filtros button{border:1px solid #c9d8e8;background:#fff;border-radius:20px;padding:8px 14px;font-size:.9rem;color:var(--muted);}
+.filtros button.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+.ped-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.ped-id{font-weight:700;color:var(--navy);font-size:1.05rem;}
+.ped-data{font-size:.85rem;color:var(--muted);}
+.selo{font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:5px 10px;border-radius:14px;white-space:nowrap;}
+.selo.aguardando{background:#fbf3e4;color:var(--amarelo);}
+.selo.pago{background:#e7f1ea;color:var(--verde);}
+.selo.entregue{background:#e6eef7;color:var(--azul);}
+.selo.cancelado{background:#f6e7e7;color:var(--verm);}
+.ped dl{display:grid;grid-template-columns:92px 1fr;gap:6px 10px;font-size:.95rem;margin:8px 0;}
+.ped dt{color:var(--muted);}
+.ped dd{word-break:break-word;}
+.ped a{color:var(--azul);}
+.itens{list-style:none;border-top:1px dashed var(--linha);border-bottom:1px dashed var(--linha);padding:8px 0;margin:10px 0;font-size:.95rem;}
+.itens li{display:flex;justify-content:space-between;gap:8px;padding:3px 0;}
+.total{display:flex;justify-content:space-between;font-weight:700;color:var(--navy);font-size:1.1rem;}
+.nota{font-size:.88rem;margin-top:8px;padding:8px 10px;border-radius:8px;}
+.nota.avisou{background:#e7f1ea;color:var(--verde);}
+.nota.alerta{background:#fbf3e4;color:#7a5c2a;}
+.acoes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;}
+.acoes button{border-radius:10px;min-height:46px;font-weight:600;font-size:.9rem;border:1px solid;background:#fff;}
+.acoes .a-pago{color:var(--verde);border-color:#a9cdb4;}
+.acoes .a-entregue{color:var(--azul);border-color:#b6cce3;}
+.acoes .a-cancelado{color:var(--verm);border-color:#e1b9b9;}
+.acoes button:disabled{opacity:.35;cursor:default;}
+.acoes button.atual{opacity:1;color:#fff;}
+.acoes .a-pago.atual{background:var(--verde);} .acoes .a-entregue.atual{background:var(--azul);}
+.vazio{text-align:center;color:var(--muted);padding:40px 10px;}
+.ess h3{font-size:1.05rem;color:var(--navy);margin-bottom:10px;}
+.linha-est{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #eef2f6;}
+.linha-est:first-of-type{border-top:none;}
+.linha-est .tam{font-weight:600;width:64px;}
+.linha-est .preco{color:var(--muted);font-size:.85rem;flex:1;}
+.ctrl{display:flex;align-items:center;gap:6px;}
+.ctrl button{width:48px;height:48px;border-radius:12px;border:1px solid #c9d8e8;background:#fff;font-size:1.5rem;line-height:1;color:var(--navy);}
+.ctrl button:active{background:#eef4fa;}
+.ctrl output{min-width:42px;text-align:center;font-size:1.25rem;font-weight:700;}
+.ctrl output.zero{color:var(--verm);}
+.dica{font-size:.88rem;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,120px);background:var(--navy);color:#fff;padding:12px 18px;border-radius:10px;
+  transition:transform .3s;max-width:calc(100vw - 28px);z-index:9;}
+.toast.show{transform:translate(-50%,0);}
+</style>
+</head>
+<body>
+
+<section id="tela-login" hidden>
+  <form class="caixa login" id="form-login">
+    <h2>Painel da Light of Now</h2>
+    <input type="password" id="senha" autocomplete="current-password" placeholder="Senha" required>
+    <button class="btn largo" type="submit">Entrar</button>
+    <p class="erro" id="erro-login"></p>
+  </form>
+</section>
+
+<section id="tela-painel" hidden>
+  <header class="topo">
+    <h1>Light of Now<small id="atualizado">painel</small></h1>
+    <button type="button" id="btn-atualizar">Atualizar</button>
+    <button type="button" id="btn-sair">Sair</button>
+  </header>
+  <nav class="abas">
+    <button type="button" data-aba="pedidos" class="on">Pedidos<span class="bolinha" id="n-abertos" hidden></span></button>
+    <button type="button" data-aba="estoque">Estoque</button>
+  </nav>
+  <main>
+    <div id="aba-pedidos">
+      <div class="filtros" id="filtros">
+        <button type="button" data-f="abertos" class="on">Em aberto</button>
+        <button type="button" data-f="aguardando">Aguardando pagamento</button>
+        <button type="button" data-f="todos">Todos</button>
+      </div>
+      <div id="lista-pedidos"></div>
+    </div>
+    <div id="aba-estoque" hidden>
+      <p class="dica">Toque em + quando fizer velas novas e em − se alguma quebrar ou for vendida fora do site.
+        As vendas do site já descontam sozinhas, e cancelar um pedido devolve as velas.
+        As clientes nunca veem estes números: só veem o tamanho riscado quando chega a 0.</p>
+      <div id="lista-estoque"></div>
+    </div>
+  </main>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const real = v => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+const quando = iso => new Date(iso).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+const NOMES = {aguardando:'Aguardando', pago:'Pago', entregue:'Entregue', cancelado:'Cancelado'};
+
+let dados = null, filtro = 'abertos', aba = 'pedidos';
+
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+async function api(caminho, corpo){
+  const r = await fetch('/api/admin/' + caminho, corpo === undefined ? {credentials:'same-origin'} :
+    {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(corpo)});
+  const j = await r.json().catch(() => ({}));
+  if(r.status === 401 && caminho !== 'entrar'){ mostra('login'); throw new Error('sessão expirou'); }
+  if(!r.ok && !j.pedido) throw new Error(j.erro || 'Falha de conexão');
+  return j;
+}
+
+function mostra(tela){
+  $('tela-login').hidden = tela !== 'login';
+  $('tela-painel').hidden = tela !== 'painel';
+  if(tela === 'login') setTimeout(() => $('senha').focus(), 50);
+}
+
+async function carrega(){
+  try {
+    dados = await api('dados');
+    mostra('painel');
+    $('atualizado').textContent = 'atualizado às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    desenha();
+  } catch(e){ if(e.message !== 'sessão expirou') toast(e.message); }
+}
+
+function desenha(){
+  const abertos = dados.pedidos.filter(p => p.status === 'aguardando' || p.status === 'pago').length;
+  $('n-abertos').textContent = abertos; $('n-abertos').hidden = !abertos;
+  desenhaPedidos(); desenhaEstoque();
+}
+
+function desenhaPedidos(){
+  const lista = dados.pedidos.filter(p =>
+    filtro === 'todos' ? true : filtro === 'aguardando' ? p.status === 'aguardando' : (p.status === 'aguardando' || p.status === 'pago'));
+  if(!lista.length){ $('lista-pedidos').innerHTML = '<p class="vazio">Nenhum pedido aqui.</p>'; return; }
+  $('lista-pedidos').innerHTML = lista.map(p => {
+    const c = p.cliente || {}, f = p.frete || {};
+    const tel = String(c.telefone || '').replace(/\D/g, '');
+    const entrega = p.modo === 'retirada'
+      ? '<dt>Receber</dt><dd><b>Retirada</b> · combinar pelo WhatsApp</dd>'
+      : '<dt>Entrega</dt><dd>' + esc(c.rua) + ', ' + esc(c.numero) + (c.complemento ? ' — ' + esc(c.complemento) : '')
+        + '<br>' + esc(c.bairro) + ' · CEP ' + esc(c.cep) + (f.cidade ? ' · ' + esc(f.cidade) : '') + '</dd>';
+    const taxa = p.modo === 'retirada' ? 'sem custo' : !f.ok ? 'a combinar' : f.taxa === 0 ? 'grátis' : real(f.taxa) + (f.km ? ' (~' + f.km + ' km)' : '');
+    const bt = (s, txt) => '<button type="button" class="a-' + s + (p.status === s ? ' atual' : '') + '" data-id="' + esc(p.id) + '" data-s="' + s + '"'
+      + (p.status === 'cancelado' || (p.status === s && s !== 'cancelado') ? ' disabled' : '') + '>' + txt + '</button>';
+    return '<article class="caixa ped">'
+      + '<div class="ped-topo"><div><div class="ped-id">' + esc(p.id) + '</div><div class="ped-data">' + quando(p.criadoEm) + '</div></div>'
+      + '<span class="selo ' + esc(p.status) + '">' + (NOMES[p.status] || esc(p.status)) + '</span></div>'
+      + '<dl><dt>Cliente</dt><dd>' + esc(c.nome) + '</dd>'
+      + '<dt>WhatsApp</dt><dd><a href="https://wa.me/55' + esc(tel) + '" target="_blank" rel="noopener">' + esc(c.telefone) + '</a></dd>'
+      + '<dt>E-mail</dt><dd><a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a></dd>'
+      + entrega + (c.obs ? '<dt>Obs.</dt><dd>' + esc(c.obs) + '</dd>' : '') + '</dl>'
+      + '<ul class="itens">' + (p.itens || []).map(i => '<li><span>' + i.qtd + '× ' + esc(i.essencia) + ' ' + esc(i.tamanho) + '</span><span>' + real(i.preco * i.qtd) + '</span></li>').join('')
+      + '<li><span>' + (p.modo === 'retirada' ? 'Retirada' : 'Entrega') + '</span><span>' + taxa + '</span></li></ul>'
+      + '<div class="total"><span>Total do Pix</span><span>' + real(p.total) + (f.ok ? '' : ' + entrega') + '</span></div>'
+      + (p.clienteAvisouEm ? '<p class="nota avisou">A cliente avisou que pagou em ' + quando(p.clienteAvisouEm) + '. Confira o Pix na conta antes de marcar como pago.</p>' : '')
+      + (p.modo !== 'retirada' && f.ok && f.conferido === false ? '<p class="nota alerta">A entrega foi calculada só no celular da cliente (o serviço de CEP não respondeu ao servidor). Confira o valor.</p>' : '')
+      + (p.status === 'cancelado' ? '<p class="nota alerta">Cancelado' + (p.estoqueDevolvido ? ' · as velas voltaram para o estoque.' : ' · as velas ainda não voltaram ao estoque; toque em Atualizar.') + '</p>' : '')
+      + '<div class="acoes">' + bt('pago', 'Pago') + bt('entregue', 'Entregue') + bt('cancelado', 'Cancelar') + '</div>'
+      + '</article>';
+  }).join('');
+}
+
+function desenhaEstoque(){
+  const e = dados.estoque;
+  $('lista-estoque').innerHTML = Object.keys(e).map(ess => '<div class="caixa ess"><h3>' + esc(ess) + '</h3>'
+    + Object.keys(e[ess]).map(t => '<div class="linha-est"><span class="tam">' + esc(t) + '</span><span class="preco">' + real(dados.precos[t]) + '</span>'
+      + '<div class="ctrl"><button type="button" aria-label="Tirar uma ' + esc(ess + ' ' + t) + '" data-e="' + esc(ess) + '" data-t="' + esc(t) + '" data-d="-1"'
+      + (e[ess][t] <= 0 ? ' disabled' : '') + '>−</button>'
+      + '<output class="' + (e[ess][t] <= 0 ? 'zero' : '') + '">' + e[ess][t] + '</output>'
+      + '<button type="button" aria-label="Pôr mais uma ' + esc(ess + ' ' + t) + '" data-e="' + esc(ess) + '" data-t="' + esc(t) + '" data-d="1">+</button></div></div>').join('')
+    + '</div>').join('');
+}
+
+$('form-login').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  $('erro-login').textContent = '';
+  const b = ev.target.querySelector('button'); b.disabled = true;
+  try { await api('entrar', {senha: $('senha').value}); $('senha').value = ''; await carrega(); }
+  catch(e){ $('erro-login').textContent = e.message; }
+  finally { b.disabled = false; }
+});
+
+$('btn-sair').addEventListener('click', async () => { await api('sair', {}).catch(() => {}); dados = null; mostra('login'); });
+$('btn-atualizar').addEventListener('click', carrega);
+
+document.querySelector('.abas').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-aba]'); if(!b) return;
+  aba = b.dataset.aba;
+  document.querySelectorAll('.abas button').forEach(x => x.classList.toggle('on', x === b));
+  $('aba-pedidos').hidden = aba !== 'pedidos'; $('aba-estoque').hidden = aba !== 'estoque';
+});
+
+$('filtros').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-f]'); if(!b) return;
+  filtro = b.dataset.f;
+  document.querySelectorAll('#filtros button').forEach(x => x.classList.toggle('on', x === b));
+  desenhaPedidos();
+});
+
+$('lista-pedidos').addEventListener('click', async ev => {
+  const b = ev.target.closest('button[data-s]'); if(!b || b.disabled) return;
+  const {id, s} = b.dataset;
+  if(s === 'cancelado' && !confirm('Cancelar o pedido ' + id + '? As velas voltam para o estoque. Isso não pode ser desfeito.')) return;
+  b.disabled = true;
+  try {
+    const r = await api('status', {id, status: s});
+    const i = dados.pedidos.findIndex(p => p.id === id);
+    if(r.pedido && i >= 0) dados.pedidos[i] = r.pedido;
+    toast(r.aviso || (id + ': ' + NOMES[s].toLowerCase()));
+    if(s === 'cancelado') dados = await api('dados');
+    desenha();
+  } catch(e){ toast(e.message); b.disabled = false; }
+});
+
+$('lista-estoque').addEventListener('click', async ev => {
+  const b = ev.target.closest('button[data-d]'); if(!b || b.disabled) return;
+  b.disabled = true;
+  try {
+    const r = await api('estoque', {essencia: b.dataset.e, tamanho: b.dataset.t, delta: +b.dataset.d});
+    dados.estoque = r.estoque;
+    desenhaEstoque();
+  } catch(e){ toast(e.message); b.disabled = false; }
+});
+
+document.addEventListener('visibilitychange', () => { if(!document.hidden && dados) carrega(); });
+setInterval(() => { if(!document.hidden && dados) carrega(); }, 60000);
+
+carrega();
+</script>
+</body>
+</html>

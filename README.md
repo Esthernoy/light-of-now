@@ -9,6 +9,10 @@ um arquivo só de 1,1 MB, agora são arquivos separados. A página ficou com 24 
 abre mais rápido, principalmente no celular. Quem volta ao site nem precisa baixar
 as fotos de novo, porque o navegador guarda as fotos.
 
+Além disso, o site agora tem um **estoque de verdade**, o mesmo para todas as
+clientes, e um **painel** em `lightofnow.com.br/admin`. No painel você vê os pedidos e
+ajusta o estoque pelo celular.
+
 ---
 
 ## O que tem em cada pasta
@@ -17,7 +21,10 @@ as fotos de novo, porque o navegador guarda as fotos.
 |---|---|
 | `site/` | **o site em si.** É isto que vai para a internet |
 | `site/index.html` | a página (textos, cards, preços que aparecem na tela) |
-| `site/loja.js` | o funcionamento da loja: sacola, frete, Pix, **preços e estoque** |
+| `site/loja.js` | o funcionamento da loja: sacola, frete, Pix |
+| `site/admin/` | o painel da dona (`/admin`) |
+| `netlify/lib/config.mjs` | **preços**, entrega e o estoque inicial |
+| `netlify/functions/` | a parte que roda no servidor: estoque, pedidos, painel |
 | `site/estilo.css` | as cores, as fontes e o visual |
 | `site/img/` | as fotos e o logo |
 | `site/compartilhar.jpg` | a imagem que aparece quando alguém manda o link no WhatsApp |
@@ -32,7 +39,7 @@ as fotos de novo, porque o navegador guarda as fotos.
 
 A hospedagem escolhida é a **Netlify**. O plano grátis dá conta de uma loja deste
 tamanho, o certificado de segurança (o cadeado do HTTPS) é gratuito e renovado
-sozinho, e na próxima etapa ela vai guardar o estoque e os pedidos.
+sozinho, e ela também guarda o estoque e os pedidos.
 
 ### Jeito recomendado: pelo GitHub (atualiza sozinho)
 
@@ -50,11 +57,27 @@ sozinho, e na próxima etapa ela vai guardar o estoque e os pedidos.
 
 Daí em diante, toda mudança enviada ao GitHub é publicada sozinha.
 
-### Jeito rápido (só para a Etapa 1): arrastar a pasta
+> **Arrastar a pasta não serve mais.** Na Etapa 1 dava para publicar arrastando a
+> pasta `site` em app.netlify.com/drop. Agora o site tem uma parte que roda no
+> servidor (estoque e pedidos), e ela só é publicada pelo GitHub.
 
-Entre em https://app.netlify.com/drop e arraste a pasta **`site`** para a página.
-Pronto. Esse jeito serve enquanto o site não tem estoque online — a partir da
-Etapa 2 é preciso usar o GitHub.
+### 1.1. Criar a senha do painel (obrigatório)
+
+O painel `/admin` só abre com uma senha. Ela **não fica escrita em nenhum arquivo**:
+fica guardada na Netlify.
+
+1. Na Netlify, abra o site → **Project configuration** → **Environment variables**
+   → **Add a variable**.
+2. Em **Key** escreva `ADMIN_SENHA`.
+3. Em **Value** escreva uma senha com **pelo menos 10 caracteres** (dica: três ou
+   quatro palavras juntas, como `vela-lavanda-mar-2026`). Marque a opção de valor
+   secreto, se aparecer.
+4. Salve e vá em **Deploys → Trigger deploy → Deploy site** para a senha valer.
+
+Para trocar a senha, é só mudar o valor e publicar de novo. Quem estava logado
+com a senha antiga é desconectado.
+
+Se errar a senha 8 vezes seguidas, o painel bloqueia por 15 minutos.
 
 ---
 
@@ -125,28 +148,76 @@ site do servidor mais perto de quem está acessando.
 
 ---
 
-## 3. Mudar preços, estoque e dados do Pix
+## 3. O painel: pedidos e estoque
 
-Tudo fica no começo do arquivo **`site/loja.js`**, na parte
-`CONFIGURAÇÕES`:
+Abra **https://lightofnow.com.br/admin** no celular e entre com a senha.
+Dica: salve o painel na tela inicial do celular (no Chrome: menu ⋮ → *Adicionar à
+tela inicial*). Ele continua logado por 7 dias.
 
-- **`PRECOS`** — preço de cada tamanho, usado na sacola e no Pix.
-  Use ponto no lugar da vírgula: `39.50`.
-  **Atenção:** o preço também está escrito nos quadros azuis da seção
-  "Tamanhos e Valores", em `site/index.html` (procure por `R$&nbsp;49,90`,
-  `39,50` etc.). **Mude nos dois lugares.**
-- **`ESTOQUE`** — quantas velas de cada essência e tamanho. Quando chegar a 0,
-  o tamanho aparece riscado. *(Na Etapa 2 o estoque sai daqui e passa a ser
-  ajustado pelo /admin, com botões.)*
-- **`PIX`** — chave, nome e cidade do recebedor.
-- **`ENTREGA`** — faixas de preço por distância e o valor do frete grátis.
+### Pedidos
 
-Depois de salvar, envie para o GitHub (ou arraste a pasta `site` de novo) e em
-um minuto está no ar.
+Cada pedido feito no site aparece aqui, o mais novo em cima, com: número
+(LON-XXXXX), cliente, WhatsApp (toque para abrir a conversa), e-mail, entrega ou
+retirada, endereço, velas, frete e **o total que a cliente deve ter pago no Pix**.
+
+- **Aguardando**: a cliente fez o pedido e recebeu o Pix.
+- Quando ela toca em "Já paguei", aparece a faixa verde *"A cliente avisou que
+  pagou"*. **Isso não quer dizer que o dinheiro caiu.** Confira no app do banco.
+- **Pago**: toque depois de ver o Pix na conta.
+- **Entregue**: toque quando a vela chegar ou for retirada.
+- **Cancelar**: as velas daquele pedido **voltam sozinhas para o estoque**. O
+  cancelamento não pode ser desfeito.
+
+Os filtros no alto mostram só os pedidos *em aberto* (aguardando ou pago), só os
+*aguardando pagamento*, ou *todos*.
+
+**Importante:** as velas ficam reservadas desde o momento do pedido. Se uma
+cliente fizer o pedido e não pagar, **cancele o pedido**, senão aquelas velas
+continuam contando como vendidas.
+
+### Estoque
+
+Uma linha para cada essência e tamanho, com **−** e **+**.
+
+- Fez velas novas? Toque em **+** uma vez para cada vela.
+- Vendeu fora do site (feira, Instagram) ou uma quebrou? Toque em **−**.
+- Vendas pelo site **já descontam sozinhas**. Não precisa mexer.
+- Quando chega a **0**, o tamanho aparece **riscado** no site para todo mundo.
+  As clientes nunca veem os números.
+
+### E se duas pessoas comprarem a última vela ao mesmo tempo?
+
+Só uma consegue. A outra volta para a sacola com o recado: *"Enquanto você
+escolhia, a última unidade de … foi vendida. Atualizamos sua sacola…"*. A sacola
+dela é ajustada sozinha e ela pode seguir com o resto.
 
 ---
 
-## 4. Se algo parar de funcionar
+## 4. Mudar preços, entrega e dados do Pix
+
+Para mudar um arquivo sem programa nenhum: no GitHub, abra o arquivo, clique no
+lápis (*Edit*), faça a mudança e clique em **Commit changes**. Em um minuto está
+no ar.
+
+**Preços** — mude em **três** lugares, sempre com o mesmo valor:
+1. `netlify/lib/config.mjs`, na linha `PRECOS`: é por ele que o servidor confere
+   o total. Use ponto no lugar da vírgula: `39.50`.
+2. `site/index.html`, nos quadros azuis de "Tamanhos e Valores" (procure por
+   `39,50`, `R$&nbsp;49,90` etc.): é o que aparece na página.
+3. `site/loja.js`, na linha `PRECOS`: só é usado se o servidor estiver fora do ar.
+
+**Entrega** (faixas por distância, frete grátis): em `netlify/lib/config.mjs`
+**e** em `site/loja.js`, na parte `ENTREGA`. Os dois precisam ficar iguais: o
+site mostra a conta para a cliente e o servidor confere.
+
+**Pix** (chave, nome, cidade): em `site/loja.js`, na parte `PIX`.
+
+**Estoque**: não se muda mais em arquivo. Use o painel. *(O `ESTOQUE_INICIAL`
+de `config.mjs` só vale na primeiríssima vez que o site roda.)*
+
+---
+
+## 5. Se algo parar de funcionar
 
 | O que aconteceu | O que fazer |
 |---|---|
@@ -156,6 +227,11 @@ um minuto está no ar.
 | O frete não calcula | O frete usa serviços gratuitos de CEP. Se todos estiverem fora do ar, o site mostra "a combinar" e a cliente segue a compra normalmente |
 | O e-mail do pedido não chegou | O pedido também vai pelo WhatsApp. Confira a conta do EmailJS (limite do plano grátis) |
 | O site inteiro saiu do ar | Na Netlify → **Deploys**, clique numa publicação antiga que funcionava → **Publish deploy**. Ela volta na hora |
+| O painel diz "a senha do painel ainda não foi configurada" | Falta a variável `ADMIN_SENHA` (passo 1.1), ou ela tem menos de 10 caracteres |
+| O painel diz "Muitas tentativas erradas" | Espere 15 minutos. Se esqueceu a senha, troque em Environment variables (passo 1.1) |
+| Um pedido chegou pelo WhatsApp mas não aparece no painel | O servidor estava fora do ar naquela hora. Para a cliente, nada muda: o Pix aparece e o pedido chega pelo WhatsApp e pelo e-mail. Só que ele **não desconta o estoque**: tire as velas com o botão **−** |
+| Aparece a faixa amarela *"entrega calculada só no celular da cliente"* | Os serviços de CEP não responderam ao servidor. O valor veio do celular dela; confira se faz sentido |
+| Muitos pedidos falsos | Cada pessoa (endereço de internet) pode fazer até 8 pedidos por hora. Cancele os falsos no painel e o estoque volta |
 
 ---
 
@@ -166,18 +242,44 @@ um minuto está no ar.
   o nome leva um pedaço do hash do conteúdo, por isso o cache de 1 ano é seguro.
 - `ferramentas/extrair.py` refaz a separação a partir de um arquivo único novo;
   `ferramentas/imagem_compartilhar.py` refaz a `compartilhar.jpg`.
-- Testes (precisam do Chrome instalado e de um servidor local na porta 8765):
+- **Servidor**: Netlify Functions (`netlify/functions`, formato v2) + Netlify Blobs.
+  O estoque inteiro fica numa chave só (store `loja`, chave `estoque`); toda mudança
+  lê com etag e grava com `onlyIfMatch`, repetindo se outra gravação chegou antes.
+  Por isso um pedido de várias velas é reservado inteiro ou nada, e cancelar o
+  mesmo pedido várias vezes devolve as velas uma vez só. Os pedidos ficam no store
+  `pedidos`, um por chave (`LON-XXXXX`, criada com `onlyIfNew`).
+- O servidor **recalcula** o total: preço de `config.mjs` e frete pelo CEP (a mesma
+  conta do site, com os serviços de CEP consultados em paralelo para caber nos
+  10 s da função). Se nenhum responde, aceita a taxa do navegador só se for um
+  valor de faixa válido, e marca o pedido.
+- `/api/estoque` nunca devolve mais do que 10 por tamanho (`TETO_VISIVEL`).
+- Se o servidor não responder, o site segue como antes (Pix estático e pedido
+  pelo WhatsApp), para a loja nunca parar.
+- Variáveis de ambiente: `ADMIN_SENHA` (obrigatória, ≥ 10 caracteres) e
+  `LIMITE_PEDIDOS_HORA` (opcional, padrão 8).
+- Rodar em casa: crie um `.env` (não vai para o GitHub) com
+  `ADMIN_SENHA=senha-de-teste-local-123` e `LIMITE_PEDIDOS_HORA=1000`, e então:
 
   ```bash
-  python -m http.server 8765
-  ```
-  ```bash
-  cd testes && npm install && node visual.js && node fluxo.js
+  npm install && npm --prefix testes install && testes/node_modules/.bin/netlify dev --offline --port 8888
   ```
 
-  `visual.js` compara o original com o site separado, pixel a pixel, a 1440 px e
-  a 390 px (página inteira, sacola etapa 1 e etapa 2). `fluxo.js` faz uma compra
-  com retirada e outra com entrega, confere total e frete, valida o CRC do Pix,
-  lê o QR Code e confere que a página mostra tudo sem JavaScript.
+- Testes (precisam do Chrome instalado):
+
+  | Arquivo | O que testa | Como rodar |
+  |---|---|---|
+  | `visual.js` | original × site, pixel a pixel, 1440 px e 390 px | `python -m http.server 8765` na raiz, depois `node visual.js` |
+  | `fluxo.js` | compra com retirada e com entrega, frete, CRC e leitura do QR do Pix, página sem JavaScript; com servidor, também a "última vela levada por outra cliente" | sem servidor: `node fluxo.js` · com servidor: `URL=http://localhost:8888/ node fluxo.js` |
+  | `atomico.test.mjs` | 50 pedidos simultâneos da última unidade (só 1 passa), cancelamentos simultâneos, +/− simultâneos | `node --test --experimental-test-module-mocks testes/atomico.test.mjs` (na raiz) |
+  | `servidor.js` | login, estoque, validação, total recalculado, frete, status, cancelar | `node servidor.js` (local) ou `BASE=https://SEU-SITE.netlify.app SENHA=... node servidor.js` |
+  | `admin-tela.js` | fotos do painel no celular | `node admin-tela.js` |
+
+  **Atenção:** o simulador local de Blobs do `netlify dev` **não é atômico** (confere
+  o etag e grava depois, sem trava). Por isso, no `localhost`, as disputas
+  simultâneas do `servidor.js` só dão AVISO. A prova da lógica é o
+  `atomico.test.mjs`, que usa um armazenamento que cumpre a gravação condicional. A
+  prova na Netlify de verdade é rodar o `servidor.js` com `BASE=` apontando para uma
+  publicação **de teste**: ele cria pedidos e mexe no estoque, então depois cancele
+  os pedidos de teste ou apague os stores `loja` e `pedidos` em Netlify → Blobs.
 - A chave do EmailJS que aparece em `loja.js` é a **chave pública**, feita para
   ficar no navegador. Não há nenhuma chave secreta no site.

@@ -19,8 +19,10 @@ const WHATS = '5511961353324';
 
 const PRECOS = {'100g':39.50, '150g':48.50, '180g':53.00, '200g':59.50};
 
-/* Estoque — depois de cada venda, diminua aqui. Quando chegar a 0,
-   o tamanho aparece riscado. Os números não aparecem no site. */
+/* Preços e estoque de verdade vêm do servidor (/api/estoque) assim que a
+   página abre; o estoque se ajusta pelo /admin. Os valores abaixo só valem
+   se o servidor não responder. Quando chegar a 0, o tamanho aparece riscado.
+   Os números não aparecem no site. */
 const ESTOQUE = {
   'Aura Tropical':     {'100g':2, '150g':2, '180g':2, '200g':2},
   'Jardim de Figo':    {'100g':1, '150g':1, '180g':1, '200g':1},
@@ -141,6 +143,40 @@ $('pix-copiar').addEventListener('click', function(){
 });
 
 /* ═══════════════ ESTOQUE E SACOLA ═══════════════ */
+
+/* Estoque compartilhado: busca no servidor ao abrir a página e ao abrir a sacola. */
+async function carregaEstoque(){
+  const r = await pegaJson('/api/estoque', 5000);
+  if(!r || !r.estoque) return false;             // servidor fora do ar: fica o que está no arquivo
+  Object.keys(r.estoque).forEach(e => { ESTOQUE[e] = r.estoque[e]; });
+  if(r.precos) Object.keys(r.precos).forEach(t => { PRECOS[t] = r.precos[t]; });
+  ajustaSacolaAoEstoque();
+  aplicaFrete();
+  renderSacola();
+  return true;
+}
+
+/* Se alguém comprou antes, a sacola diminui para o que ainda existe. */
+function ajustaSacolaAoEstoque(){
+  const acabou = [];
+  carrinho = carrinho.filter(i => {
+    const tem = estoqueDe(i.essencia, i.tamanho);
+    if(i.qtd <= tem) return true;
+    acabou.push(i.essencia + ' ' + i.tamanho);
+    if(tem > 0){ i.qtd = tem; return true; }
+    return false;
+  });
+  if(acabou.length) avisoEstoque('Enquanto você escolhia, ' + (acabou.length > 1 ? 'as últimas unidades de ' : 'a última unidade de ')
+    + acabou.join(', ') + (acabou.length > 1 ? ' foram vendidas' : ' foi vendida') + '. Atualizamos sua sacola com carinho para você seguir com o que ainda temos.');
+  return acabou.length;
+}
+
+function avisoEstoque(msg){
+  const a = $('aviso-estoque');
+  if(!a) return;
+  a.textContent = msg || '';
+  a.hidden = !msg;
+}
 
 let carrinho = [];
 
@@ -312,6 +348,7 @@ function abrirSacola(){
   document.body.classList.add('sacola-aberta');
   const t = $('toast'); if(t) t.classList.remove('show');
   renderSacola();
+  if(etapa !== 3) carregaEstoque();
   setTimeout(() => $('sc-fechar').focus(), 80);
   return false;
 }
@@ -320,6 +357,7 @@ function fecharSacola(){
   $('sacola-fundo').classList.remove('aberto');
   $('sacola').setAttribute('aria-hidden', 'true');
   document.body.classList.remove('sacola-aberta');
+  avisoEstoque('');
   if(etapa === 3){                 // pedido concluído: começa uma sacola nova
     carrinho = []; pedidoFeito = null; etapa = 1;
     ['obs'].forEach(id => { if($(id)) $(id).value = ''; });
@@ -337,6 +375,7 @@ function verEssencias(){
 
 function irEtapa(n){
   if(n === 2 && !carrinho.length) return;
+  if(n !== 1) avisoEstoque('');
   etapa = n;
   renderSacola();
   $('sc-corpo').scrollTop = 0;
@@ -510,9 +549,8 @@ async function confirmarPedido(){
   const btn = $('btn-confirmar');
   btn.disabled = true; btn.textContent = 'Confirmando seu pedido…';
 
-  const id = 'LON-' + Date.now().toString(36).toUpperCase().slice(-5);
   const p = {
-    id, d,
+    id: '', d,
     itens: carrinho.map(i => ({...i})),
     subtotal: subtotal(),
     modo,
@@ -523,6 +561,27 @@ async function confirmarPedido(){
     total: totalPedido()
   };
   p.emailEnviado = false;
+
+  /* o servidor confere o total, reserva as unidades e dá o número do pedido */
+  const r = await registraPedido(p);
+  if(r && r.falta){
+    Object.keys(r.estoque || {}).forEach(e => { ESTOQUE[e] = r.estoque[e]; });
+    if(!ajustaSacolaAoEstoque()) avisoEstoque('Algumas velas acabaram de ser vendidas. Atualizamos sua sacola.');
+    aplicaFrete();
+    irEtapa(1);
+    return;
+  }
+  if(r && r.erro){
+    const b = $('btn-confirmar'); if(b){ b.disabled = false; b.textContent = 'Confirmar e pagar com Pix'; }
+    $('sc-erro').textContent = r.erro;
+    return;
+  }
+  if(r && r.ok){
+    Object.assign(p, {id: r.id, subtotal: r.subtotal, total: r.total, freteOk: r.freteOk, taxa: r.taxa,
+                      km: r.km, cidade: r.cidade || p.cidade, salvo: true});
+  } else {
+    p.id = 'LON-' + Date.now().toString(36).toUpperCase().slice(-5);   // servidor fora do ar: segue como antes
+  }
 
   /* reserva as unidades nesta visita */
   p.itens.forEach(i => { if(ESTOQUE[i.essencia]) ESTOQUE[i.essencia][i.tamanho] = Math.max(0, estoqueDe(i.essencia, i.tamanho) - i.qtd); });
@@ -543,12 +602,39 @@ async function confirmarPedido(){
   irEtapa(3);
 }
 
+/* Manda o pedido para o servidor. Devolve {ok,...}, {falta,estoque}, {erro}
+   ou null se o servidor não respondeu (aí a compra segue pelo WhatsApp, como antes). */
+async function registraPedido(p){
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const resp = await fetch('/api/pedido', {
+      method: 'POST', signal: ctrl.signal, headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        itens: p.itens.map(i => ({essencia: i.essencia, tamanho: i.tamanho, qtd: i.qtd})),
+        modo: p.modo, cliente: p.d,
+        frete: {ok: p.freteOk, taxa: p.taxa, km: p.km, cidade: p.cidade}
+      })
+    });
+    const j = await resp.json().catch(() => ({}));
+    if(resp.status === 201) return {ok: true, ...j};
+    if(resp.status === 409 && j.erro === 'estoque') return {falta: true, estoque: j.estoque};
+    if(resp.status >= 400 && resp.status < 500 && j.erro) return {erro: j.erro};
+    return null;
+  } catch(e){ return null; }
+  finally { clearTimeout(t); }
+}
+
 function enviarComprovante(){
   if(!pedidoFeito) return;
   const p = pedidoFeito;
   window.open(linkWhats(textoPedido(p)), '_blank');   // abre na hora do clique, para o navegador não bloquear
   if(!p.emailEnviado){
     p.emailEnviado = true;
+    if(p.salvo){
+      try { fetch('/api/pedido/avisou', {method: 'POST', keepalive: true, headers: {'Content-Type': 'application/json'},
+                                          body: JSON.stringify({id: p.id})}).catch(() => {}); } catch(e){}
+    }
     p.pagoEm = new Date().toLocaleString('pt-BR');
     mandaEmail(p).then(ok => { p.emailOk = ok; });
     $('pd-msg').textContent = 'Obrigada! Recebemos seu aviso de pagamento. Assim que conferirmos o Pix, confirmamos seu pedido pelo WhatsApp.';
@@ -583,5 +669,4 @@ $('sacola-fundo').addEventListener('click', fecharSacola);
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('sacola').classList.contains('aberta')) fecharSacola(); });
 
 renderSacola();
-
-
+carregaEstoque();

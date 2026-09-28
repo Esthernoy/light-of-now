@@ -1,0 +1,10 @@
+{
+  "name": "light-of-now",
+  "private": true,
+  "type": "module",
+  "description": "Site da Light of Now: loja estática + funções da Netlify (estoque e pedidos)",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@netlify/blobs": "^10.0.0"
+  }
+}

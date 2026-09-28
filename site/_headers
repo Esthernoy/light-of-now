@@ -19,3 +19,11 @@
 
 /compartilhar.jpg
   Cache-Control: public, max-age=86400
+
+# Painel da dona: nunca guardar em cache e não aparecer no Google
+/admin/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+/admin
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
