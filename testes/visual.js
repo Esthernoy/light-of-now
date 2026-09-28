@@ -30,6 +30,10 @@ async function fotos(browser, url, tela) {
   // sacola aberta com um item, etapa 1 e etapa 2
   await p.evaluate(() => { addCarrinho('Ocean Breeze', '100g'); addCarrinho('Aura Tropical', '200g'); abrirSacola(); });
   await espera(700);
+  // as miniaturas da sacola vêm da internet: espera terminarem de chegar e de ser desenhadas
+  await p.waitForFunction(() => [...document.querySelectorAll('.sacola img.ci-foto')].every(i => i.complete && i.naturalWidth > 0), { timeout: 20000 });
+  await p.evaluate(() => Promise.all([...document.querySelectorAll('.sacola img.ci-foto')].map(i => i.decode().catch(() => {}))));
+  await espera(1500);                                  // o Chrome redesenha a foto reduzida em alta qualidade logo depois
   const sacola1 = await p.screenshot();
   await p.evaluate(() => irEtapa(2));
   await espera(700);
@@ -49,7 +53,9 @@ function compara(a, b, nome) {
   const n = pixelmatch(A.data, B.data, d.data, A.width, A.height, { threshold: 0 });
   fs.writeFileSync(`dif-${nome}.png`, PNG.sync.write(d));
   fs.writeFileSync(`novo-${nome}.png`, b);
-  console.log(`${nome}: ${A.width}x${A.height}, pixels diferentes: ${n}`);
+  let max = 0;
+  for (let i = 0; i < A.data.length; i++) { const x = Math.abs(A.data[i] - B.data[i]); if (x > max) max = x; }
+  console.log(`${nome}: ${A.width}x${A.height}, pixels diferentes: ${n}` + (n ? ` (maior diferença de cor: ${max} de 255)` : ''));
   return n === 0;
 }
 
