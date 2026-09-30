@@ -1072,3 +1072,11 @@ section.sobre.marca-azul{position:relative;overflow:hidden;padding:120px 24px 12
 
 /* aviso gentil quando outra pessoa levou a última unidade */
 .sc-aviso-estoque{margin:0 0 16px;line-height:1.55;}
+
+/* menu do computador sempre numa linha só (antes quebrava "Sobre a Marca" e
+   "Valores & Tamanhos" em duas linhas em algumas larguras de tela) */
+@media(min-width:1081px){
+  #topnav .nav-links{width:max-content;}
+  #topnav .nav-links a{white-space:nowrap;}
+}
+@media(min-width:1081px) and (max-width:1180px){#topnav .nav-links a{padding:0 10px;letter-spacing:.14em;}}
