@@ -4,7 +4,7 @@ let emailPronto = false;
 (function(){
   try {
     if(typeof emailjs !== 'undefined'){ emailjs.init("vkXMZ59NjavDdzP0C"); emailPronto = true; }
-  } catch(e){ console.warn('EmailJS indisponível; pedidos seguem pelo WhatsApp.'); }
+  } catch(e){ console.warn('EmailJS indisponível; o pedido fica só no painel.'); }
 })();
 
 const io = new IntersectionObserver(entries => {
@@ -459,10 +459,9 @@ function renderSacola(){
       + '<button type="button" class="sc-btn" id="btn-confirmar" onclick="confirmarPedido()"' + (modo === 'entrega' && frete.status === 'buscando' ? ' disabled' : '') + '>'
       + (modo === 'entrega' && frete.status === 'buscando' ? 'Calculando a entrega…' : 'Confirmar e pagar com Pix') + '</button>';
   } else {
-    rod.innerHTML =
-        '<button type="button" class="sc-btn wa" onclick="enviarComprovante()">'
-      + (pedidoFeito && pedidoFeito.emailEnviado ? 'Abrir o WhatsApp novamente' : 'Já paguei · enviar comprovante') + '</button>'
-      + (pedidoFeito && !pedidoFeito.emailEnviado ? '<p class="sc-mini">Depois de pagar, toque aqui para nos avisar e mandar o comprovante.</p>' : '')
+    rod.innerHTML = pedidoFeito && pedidoFeito.emailEnviado ? '' :
+        '<button type="button" class="sc-btn" onclick="informarPagamento()">Já paguei</button>'
+      + '<p class="sc-mini">Depois de pagar, toque aqui para nos avisar.</p>'
       + '<p class="sc-mini">Prefere pagar em cartão? <a href="' + linkWhats('Olá! Fiz o pedido ' + (pedidoFeito ? pedidoFeito.id : '') + ' no site e gostaria de pagar em cartão.') + '" target="_blank" rel="noopener">Combine pelo WhatsApp</a>.</p>';
   }
 }
@@ -496,42 +495,16 @@ function validaDados(d){
   return true;
 }
 
-function textoPedido(p){
-  const L = [];
-  L.push('Olá! Fiz o pedido ' + p.id + ' no site da Light of Now e já paguei pelo Pix.');
-  L.push('');
-  L.push('*MEU PEDIDO*');
-  p.itens.forEach(i => L.push('• ' + i.qtd + 'x ' + i.essencia + ' ' + i.tamanho + ' — ' + fmtReal(PRECOS[i.tamanho] * i.qtd)));
-  L.push('Produtos: ' + fmtReal(p.subtotal));
-  L.push(p.modo === 'retirada' ? 'Retirada: sem custo' : 'Taxa de entrega: ' + (p.freteOk ? (p.taxa === 0 ? 'grátis' : fmtReal(p.taxa) + ' (cerca de ' + p.km + ' km)') : 'a combinar'));
-  L.push('*Total: ' + fmtReal(p.total) + (p.freteOk ? '' : ' + entrega') + '*');
-  L.push('');
-  if(p.modo === 'retirada'){
-    L.push('*RETIRADA*');
-    L.push(p.d.nome + ' · ' + p.d.telefone);
-    L.push('Quero combinar o dia e o horário para retirar.');
-  } else {
-    L.push('*ENTREGA*');
-    L.push(p.d.nome + ' · ' + p.d.telefone);
-    L.push(p.d.rua + ', ' + p.d.numero + (p.d.complemento ? ' — ' + p.d.complemento : '') + ' · ' + p.d.bairro);
-    L.push('CEP ' + p.d.cep + (p.cidade ? ' · ' + p.cidade : ''));
-  }
-  if(p.d.obs) L.push('Obs.: ' + p.d.obs);
-  L.push('');
-  L.push('Segue o comprovante do Pix.');
-  return L.join('\n');
-}
-
 async function mandaEmail(p){
   if(!emailPronto) return false;
   const itens = p.itens.map(i => i.qtd + 'x ' + i.essencia + ' ' + i.tamanho + ' — ' + fmtReal(PRECOS[i.tamanho] * i.qtd)).join(' | ');
   const resumo = 'PAGAMENTO INFORMADO PELA CLIENTE — confira o Pix na sua conta | Pedido ' + p.id + ' | Produtos: ' + fmtReal(p.subtotal)
-    + (p.modo === 'retirada' ? ' | RETIRADA (sem custo) — combinar dia e horário pelo WhatsApp' : ' | Taxa de entrega: ' + (p.freteOk ? (p.taxa === 0 ? 'grátis' : fmtReal(p.taxa) + ' (~' + p.km + ' km)') : 'a combinar'))
+    + (p.modo === 'retirada' ? ' | RETIRADA (sem custo) — combinar dia e horário com a cliente' : ' | Taxa de entrega: ' + (p.freteOk ? (p.taxa === 0 ? 'grátis' : fmtReal(p.taxa) + ' (~' + p.km + ' km)') : 'a combinar'))
     + ' | TOTAL: ' + fmtReal(p.total) + (p.freteOk ? '' : ' + entrega');
   const envio = emailjs.send('service_z2lsics', 'template_djxy7xq', {
     nome: p.d.nome, email: p.d.email, telefone: p.d.telefone,
     fragancia: itens, tamanho: resumo,
-    rua: p.modo === 'retirada' ? 'RETIRADA — combinar pelo WhatsApp' : p.d.rua + (p.d.complemento ? ' — ' + p.d.complemento : ''),
+    rua: p.modo === 'retirada' ? 'RETIRADA — entrar em contato com a cliente' : p.d.rua + (p.d.complemento ? ' — ' + p.d.complemento : ''),
     bairro: p.modo === 'retirada' ? '—' : p.d.bairro, numero: p.modo === 'retirada' ? '—' : p.d.numero, cep: p.modo === 'retirada' ? '—' : p.d.cep,
     obs: 'Pedido ' + p.id + ' · WhatsApp: ' + p.d.telefone + (p.d.obs ? ' · ' + p.d.obs : '')
   });
@@ -591,10 +564,10 @@ async function confirmarPedido(){
   $('pd-selo-txt').classList.remove('ok');
   $('pd-numero').textContent = 'Pedido ' + p.id;
   $('pd-msg').textContent = p.modo === 'retirada'
-    ? 'Agora é só pagar pelo Pix e enviar o comprovante pelo WhatsApp. Por lá combinamos o dia e o horário da retirada.'
+    ? 'Agora é só pagar pelo Pix e tocar em "Já paguei". Depois combinamos com você o dia e o horário da retirada.'
     : p.freteOk
-    ? 'Agora é só pagar pelo Pix e enviar o comprovante pelo WhatsApp para confirmarmos.'
-    : 'Pague os produtos pelo Pix e envie o comprovante pelo WhatsApp — combinamos a entrega com você por lá.';
+    ? 'Agora é só pagar pelo Pix e tocar em "Já paguei".'
+    : 'Pague os produtos pelo Pix e toque em "Já paguei". Depois combinamos a entrega com você.';
   $('pix-nota').innerHTML = p.modo === 'retirada' ? 'Retirada sem custo de entrega.' : p.freteOk
     ? (p.taxa === 0 ? 'Entrega grátis incluída.' : 'Valor já com a taxa de entrega de ' + fmtReal(p.taxa) + '.')
     : '<b>Este valor é só dos produtos.</b> A taxa de entrega é cobrada à parte.';
@@ -603,7 +576,7 @@ async function confirmarPedido(){
 }
 
 /* Manda o pedido para o servidor. Devolve {ok,...}, {falta,estoque}, {erro}
-   ou null se o servidor não respondeu (aí a compra segue pelo WhatsApp, como antes). */
+   ou null se o servidor não respondeu (aí a compra segue só com o Pix e o e-mail do pedido). */
 async function registraPedido(p){
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 20000);
@@ -625,10 +598,10 @@ async function registraPedido(p){
   finally { clearTimeout(t); }
 }
 
-function enviarComprovante(){
+/* A cliente tocou em "Já paguei": avisa a loja (painel + e-mail) e agradece. */
+function informarPagamento(){
   if(!pedidoFeito) return;
   const p = pedidoFeito;
-  window.open(linkWhats(textoPedido(p)), '_blank');   // abre na hora do clique, para o navegador não bloquear
   if(!p.emailEnviado){
     p.emailEnviado = true;
     if(p.salvo){
@@ -637,7 +610,7 @@ function enviarComprovante(){
     }
     p.pagoEm = new Date().toLocaleString('pt-BR');
     mandaEmail(p).then(ok => { p.emailOk = ok; });
-    $('pd-msg').textContent = 'Obrigada! Recebemos seu aviso de pagamento. Assim que conferirmos o Pix, confirmamos seu pedido pelo WhatsApp.';
+    $('pd-msg').textContent = 'Obrigada pela compra, nossa equipe entrará em contato em alguns instantes.';
     $('pd-selo-txt').textContent = 'Pagamento informado';
     $('pd-selo-txt').classList.add('ok');
     renderSacola();

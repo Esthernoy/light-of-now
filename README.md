@@ -175,8 +175,12 @@ Cada pedido feito no site aparece aqui, o mais novo em cima, com: número
 retirada, endereço, velas, frete e **o total que a cliente deve ter pago no Pix**.
 
 - **Aguardando**: a cliente fez o pedido e recebeu o Pix.
-- Quando ela toca em "Já paguei", aparece a faixa verde *"A cliente avisou que
-  pagou"*. **Isso não quer dizer que o dinheiro caiu.** Confira no app do banco.
+- Quando ela toca em "Já paguei", a tela dela mostra *"Obrigada pela compra, nossa
+  equipe entrará em contato em alguns instantes."*, você recebe o e-mail do pedido e
+  aqui aparece a faixa verde *"A cliente avisou que pagou"*. **Isso não quer dizer
+  que o dinheiro caiu.** Confira no app do banco e **entre em contato com a
+  cliente pelo WhatsApp** (o número dela está no pedido, é só tocar). O site não pede
+  mais para ela mandar comprovante.
 - **Pago**: toque depois de ver o Pix na conta.
 - **Entregue**: toque quando a vela chegar ou for retirada.
 - **Cancelar**: as velas daquele pedido **voltam sozinhas para o estoque**. O
@@ -239,11 +243,11 @@ de `config.mjs` só vale na primeiríssima vez que o site roda.)*
 | Aparece aviso de "conexão não segura" | Netlify → Domain management → HTTPS → **Verify DNS configuration** e **Provision certificate** |
 | Mudei algo e não apareceu | Na Netlify, veja em **Deploys** se a última publicação ficou verde. No celular, feche e abra a página de novo |
 | O frete não calcula | O frete usa serviços gratuitos de CEP. Se todos estiverem fora do ar, o site mostra "a combinar" e a cliente segue a compra normalmente |
-| O e-mail do pedido não chegou | O pedido também vai pelo WhatsApp. Confira a conta do EmailJS (limite do plano grátis) |
+| O e-mail do pedido não chegou | O pedido também aparece no painel `/admin`. Confira a conta do EmailJS (limite do plano grátis) |
 | O site inteiro saiu do ar | Na Netlify → **Deploys**, clique numa publicação antiga que funcionava → **Publish deploy**. Ela volta na hora |
 | O painel diz "a senha do painel ainda não foi configurada" | Falta a variável `ADMIN_SENHA` (passo 1.1), ou ela tem menos de 10 caracteres |
 | O painel diz "Muitas tentativas erradas" | Espere 15 minutos. Se esqueceu a senha, troque em Environment variables (passo 1.1) |
-| Um pedido chegou pelo WhatsApp mas não aparece no painel | O servidor estava fora do ar naquela hora. Para a cliente, nada muda: o Pix aparece e o pedido chega pelo WhatsApp e pelo e-mail. Só que ele **não desconta o estoque**: tire as velas com o botão **−** |
+| Um pedido chegou por e-mail mas não aparece no painel | O servidor estava fora do ar naquela hora. Para a cliente, nada muda: o Pix aparece e, quando ela toca em "Já paguei", o pedido chega pelo e-mail. Só que ele **não desconta o estoque**: tire as velas com o botão **−** |
 | Aparece a faixa amarela *"entrega calculada só no celular da cliente"* | Os serviços de CEP não responderam ao servidor. O valor veio do celular dela; confira se faz sentido |
 | Muitos pedidos falsos | Cada pessoa (endereço de internet) pode fazer até 8 pedidos por hora. Cancele os falsos no painel e o estoque volta |
 
@@ -267,8 +271,8 @@ de `config.mjs` só vale na primeiríssima vez que o site roda.)*
   10 s da função). Se nenhum responde, aceita a taxa do navegador só se for um
   valor de faixa válido, e marca o pedido.
 - `/api/estoque` nunca devolve mais do que 10 por tamanho (`TETO_VISIVEL`).
-- Se o servidor não responder, o site segue como antes (Pix estático e pedido
-  pelo WhatsApp), para a loja nunca parar.
+- Se o servidor não responder, o site segue vendendo (Pix estático e e-mail do
+  pedido quando a cliente toca em "Já paguei"), para a loja nunca parar.
 - Variáveis de ambiente: `ADMIN_SENHA` (obrigatória, ≥ 10 caracteres) e
   `LIMITE_PEDIDOS_HORA` (opcional, padrão 8).
 - Rodar em casa: crie um `.env` (não vai para o GitHub) com

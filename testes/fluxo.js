@@ -52,6 +52,16 @@ async function compra(browser, modo) {
   const qr = jsQR(Uint8ClampedArray.from(r.px), r.w, r.h);
   confere(qr && qr.data === r.codigo, `${modo}: QR Code lido e igual ao copia e cola`);
   confere(r.estoque === 0, `${modo}: Jardim de Figo 200g ficou esgotado nesta visita`);
+  // "Já paguei": só agradece, não abre o WhatsApp
+  const abas = (await browser.pages()).length;
+  const tela3 = await p.evaluate(() => ({ msg: $('pd-msg').textContent, botao: $('sc-rodape').textContent }));
+  confere(!/comprovante/i.test(tela3.msg + tela3.botao) && tela3.botao.includes('Já paguei'), `${modo}: nenhuma menção a comprovante; botão "Já paguei"`);
+  await p.evaluate(() => informarPagamento());
+  await espera(800);
+  const pago = await p.evaluate(() => ({ msg: $('pd-msg').textContent, selo: $('pd-selo-txt').textContent, rodape: $('sc-rodape').innerHTML }));
+  confere(pago.msg === 'Obrigada pela compra, nossa equipe entrará em contato em alguns instantes.' && pago.selo === 'Pagamento informado' && pago.rodape === '',
+    `${modo}: depois de pagar aparece "${pago.msg}"`);
+  confere((await browser.pages()).length === abas, `${modo}: o WhatsApp não abriu`);
   if (COM_SERVIDOR) {
     confere(r.salvo, `${modo}: pedido gravado no servidor`);
     const pub = await (await fetch(new globalThis.URL('/api/estoque', URL))).json();
