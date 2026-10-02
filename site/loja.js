@@ -568,7 +568,7 @@ async function confirmarPedido(){
     : p.freteOk
     ? 'Agora é só pagar pelo Pix e tocar em "Já paguei".'
     : 'Pague os produtos pelo Pix e toque em "Já paguei". Depois combinamos a entrega com você.';
-  $('pix-nota').innerHTML = p.modo === 'retirada' ? 'Retirada sem custo de entrega.' : (p.freteOk
+  $('pix-nota').innerHTML = p.modo === 'retirada' ? 'Retirada sem custo de entrega. Prazo: 3 dias úteis.' : (p.freteOk
     ? (p.taxa === 0 ? 'Entrega grátis incluída.' : 'Valor já com a taxa de entrega de ' + fmtReal(p.taxa) + '.')
     : '<b>Este valor é só dos produtos.</b> A taxa de entrega é cobrada à parte.') + ' Prazo de entrega: 3 dias úteis.';
   desenhaPix(p.total, p.id);
